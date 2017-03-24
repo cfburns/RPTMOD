@@ -1,0 +1,42 @@
+--------------------------------------------------------------------------------
+--
+--  REPORT MODS FRAMEWORK - SPOOLED FILE GRID
+--
+--  Copyright (C) 2004, 2017  Christopher F. Burns, Sr.
+--  c/o GEMKO Information Group (http://www.gemko.com)
+--
+--  This program is free software: you can redistribute it and/or modify
+--  it under the terms of the GNU General Public License as published by
+--  the Free Software Foundation, either version 3 of the License, or
+--  (at your option) any later version.
+--
+--  This program is distributed in the hope that it will be useful,
+--  but WITHOUT ANY WARRANTY; without even the implied warranty of
+--  MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+--  GNU General Public License for more details.
+--
+--  You should have received a copy of the GNU General Public License
+--  along with this program.  If not, see <http://www.gnu.org/licenses/>.
+--
+--------------------------------------------------------------------------------
+
+CREATE TABLE SPLFGRID (
+  SKPBEF CHAR(3) CCSID 37 NOT NULL ,
+  SPCBEF CHAR(1) CCSID 37 NOT NULL ,
+  SPLTXT CHAR(132) CCSID 37 NOT NULL )
+
+  RCDFMT SPLFGRID   ;
+
+LABEL ON TABLE SPLFGRID
+  IS 'Spooled File Grid' ;
+
+LABEL ON COLUMN SPLFGRID
+( SKPBEF IS 'Skip                Before' ,
+  SPCBEF IS 'Space               Before' ,
+  SPLTXT IS 'Spooled             Line Text' ) ;
+
+LABEL ON COLUMN SPLFGRID
+( SKPBEF TEXT IS 'Skip Before' ,
+  SPCBEF TEXT IS 'Space Before' ,
+  SPLTXT TEXT IS 'Spooled Line Text' ) ;
+

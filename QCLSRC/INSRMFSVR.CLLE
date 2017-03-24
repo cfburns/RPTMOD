@@ -1,0 +1,233 @@
+/******************************************************************************/
+/*                                                                            */
+/*  REPORT MODS FRAMEWORK - INSTALLATION                                      */
+/*                                                                            */
+/*  Copyright (C) 2004, 2017  Christopher F. Burns, Sr.                       */
+/*  c/o GEMKO Information Group (http://www.gemko.com)                        */
+/*                                                                            */
+/*  This program is free software: you can redistribute it and/or modify      */
+/*  it under the terms of the GNU General Public License as published by      */
+/*  the Free Software Foundation, either version 3 of the License, or         */
+/*  (at your option) any later version.                                       */
+/*                                                                            */
+/*  This program is distributed in the hope that it will be useful,           */
+/*  but WITHOUT ANY WARRANTY; without even the implied warranty of            */
+/*  MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the             */
+/*  GNU General Public License for more details.                              */
+/*                                                                            */
+/*  You should have received a copy of the GNU General Public License         */
+/*  along with this program.  If not, see <http://www.gnu.org/licenses/>.     */
+/*                                                                            */
+/******************************************************************************/
+
+/*  Must specify a non-existing library.                                      */
+
+             PGM        PARM(&LIBNAM)
+
+             DCL        VAR(&LIBNAM) TYPE(*CHAR) LEN(10)
+             DCL        VAR(&CURLIB) TYPE(*CHAR) LEN(10)
+             DCL        VAR(&MSGTXT) TYPE(*CHAR) LEN(128)
+
+             RTVJOBA    CURLIB(&CURLIB)
+
+             CRTLIB     LIB(&LIBNAM) TEXT('Report Mods Framework') +
+                          CRTAUT(*CHANGE)
+
+                        MONMSG     MSGID(CPF0000) EXEC(DO)
+                        CHGVAR     VAR(&MSGTXT) VALUE('Library' *BCAT &LIBNAM +
+                          *BCAT 'already exists, installation failed.')
+                        SNDPGMMSG  MSG(&MSGTXT) TOPGMQ(*PRV)
+                        GOTO       CMDLBL(EXIT)
+                        ENDDO
+
+             RSTOBJ     OBJ(Q*) SAVLIB(RPTMODSRC) DEV(*SAVF) +
+                          OBJTYPE(*FILE) SAVF(QTEMP/RPTMODSRC) +
+                          MBROPT(*ALL) ALWOBJDIF(*ALL) RSTLIB(&LIBNAM)
+                        MONMSG     MSGID(CPF0000)
+
+/*  Data queue that output queues must specify.                               */
+
+             CRTDTAQ    DTAQ(&LIBNAM/RPTMOD) MAXLEN(128) +
+                          AUTORCL(*YES) TEXT('Report Mods Framework')
+
+                        MONMSG     MSGID(CPF0000) EXEC(DO)
+                        CHGVAR     VAR(&MSGTXT) VALUE('Could not create data +
+                                     queue RPTMOD in library' *BCAT &LIBNAM)
+                        CALLSUBR   SUBR(INST_ERROR)
+                        GOTO       CMDLBL(EXIT)
+                        ENDDO
+
+/*  Subsystem in which the server will run.                                   */
+
+             CRTSBSD    SBSD(&LIBNAM/RPTMOD) POOLS((1 *BASE)) +
+                          TEXT('Report Mods Server')
+
+                        MONMSG     MSGID(CPF0000) EXEC(DO)
+                        CHGVAR     VAR(&MSGTXT) VALUE('Could not create +
+                          subsystem RPTMOD in library' *BCAT &LIBNAM)
+                        CALLSUBR   SUBR(INST_ERROR)
+                        GOTO       CMDLBL(EXIT)
+                        ENDDO
+
+/*  Routing entry for operating system commands.                              */
+
+             ADDRTGE    SBSD(&LIBNAM/RPTMOD) SEQNBR(9999) +
+                          CMPVAL(*ANY) PGM(QCMD) CLS(QBATCH)
+
+                        MONMSG     MSGID(CPF0000) EXEC(DO)
+                        CHGVAR     VAR(&MSGTXT) VALUE('Could not create +
+                          routing entry for subsystem RPTMOD in +
+                          library' *BCAT &LIBNAM)
+                        CALLSUBR   SUBR(INST_ERROR)
+                        GOTO       CMDLBL(EXIT)
+                        ENDDO
+
+/*  Job queue for server startup.                                             */
+
+             CRTJOBQ    JOBQ(&LIBNAM/RPTMOD) TEXT('Report Mods Server')
+
+                        MONMSG     MSGID(CPF0000) EXEC(DO)
+                        CHGVAR     VAR(&MSGTXT) VALUE('Could not create job +
+                          queue RPTMOD in library' *BCAT &LIBNAM)
+                        CALLSUBR   SUBR(INST_ERROR)
+                        GOTO       CMDLBL(EXIT)
+                        ENDDO
+
+/*  Job queue entry for subsystem.  Single threaded processing assumed.       */
+
+             ADDJOBQE   SBSD(&LIBNAM/RPTMOD) JOBQ(&LIBNAM/RPTMOD) +
+                          SEQNBR(1)
+
+                        MONMSG     MSGID(CPF0000) EXEC(DO)
+                        CHGVAR     VAR(&MSGTXT) VALUE('Could not create job +
+                          queue entry for RPTMOD in library' *BCAT +
+                          &LIBNAM)
+                        CALLSUBR   SUBR(INST_ERROR)
+                        GOTO       CMDLBL(EXIT)
+                        ENDDO
+
+/*  Job description for server startup.                                       */
+
+             CRTJOBD    JOBD(&LIBNAM/RPTMOD) JOBQ(&LIBNAM/RPTMOD) +
+                          TEXT('Report Mods Server') USER(QSYSOPR) +
+                          RQSDTA('CALL PGM(RPTMOD)') INLLIBL(QTEMP +
+                          QGPL &LIBNAM)
+
+                        MONMSG     MSGID(CPF0000) EXEC(DO)
+                        CHGVAR     VAR(&MSGTXT) VALUE('Could not create job +
+                          description RPTMOD in library' *BCAT &LIBNAM)
+                        CALLSUBR   SUBR(INST_ERROR)
+                        GOTO       CMDLBL(EXIT)
+                        ENDDO
+
+/*  Autostart job for server when subsystem is started.                       */
+
+             ADDAJE     SBSD(&LIBNAM/RPTMOD) JOB(RPTMOD) +
+                          JOBD(&LIBNAM/RPTMOD)
+
+                        MONMSG     MSGID(CPF0000) EXEC(DO)
+                        CHGVAR     VAR(&MSGTXT) VALUE('Could not create +
+                          autostart job entry for subsystem RPTMOD +
+                          in library' *BCAT &LIBNAM)
+                        CALLSUBR   SUBR(INST_ERROR)
+                        GOTO       CMDLBL(EXIT)
+                        ENDDO
+
+/*  Create rules table and associated index.                                  */
+
+             CHGCURLIB  CURLIB(&LIBNAM)
+
+             RUNSQLSTM  SRCFILE(&LIBNAM/QTXTSRC) SRCMBR(RPTMOD) +
+                          COMMIT(*NONE) NAMING(*SYS)
+
+                        MONMSG     MSGID(CPF0000 SQL0000) EXEC(DO)
+                        CHGVAR     VAR(&MSGTXT) VALUE('Could not create table +
+                          RPTMOD in library' *BCAT &LIBNAM)
+                        CALLSUBR   SUBR(INST_ERROR)
+                        GOTO       CMDLBL(EXIT)
+                        ENDDO
+
+/*  Work file to transfer spooled file content into memory grid.              */
+
+             RUNSQLSTM  SRCFILE(&LIBNAM/QTXTSRC) SRCMBR(SPLFGRID) +
+                          COMMIT(*NONE) NAMING(*SYS)
+
+                        MONMSG     MSGID(CPF0000 SQL0000) EXEC(DO)
+                        CHGVAR     VAR(&MSGTXT) VALUE('Could not create table +
+                          SPLFGRID in library' *BCAT &LIBNAM)
+                        CALLSUBR   SUBR(INST_ERROR)
+                        GOTO       CMDLBL(EXIT)
+                        ENDDO
+
+/*  Source physical file for FTP scripts.                                     */
+
+             CRTSRCPF   FILE(&LIBNAM/QFTPSRC) MBR(OUTPUT) +
+                          MAXMBRS(*NOMAX) SIZE(*NOMAX)
+
+                        MONMSG     MSGID(CPF0000 SQL0000) EXEC(DO)
+                        CHGVAR     VAR(&MSGTXT) VALUE('Could not create source +
+                          physical file QFTPSRC in library' *BCAT +
+                          &LIBNAM)
+                        CALLSUBR   SUBR(INST_ERROR)
+                        GOTO       CMDLBL(EXIT)
+                        ENDDO
+
+/*  Dummy file used to create empty PDF shell in *PCASCII code page.          */
+
+             CRTPF      FILE(RPTMOD/PCASCII) RCDLEN(1) TEXT('Dummy +
+                          File For *PCASCII - Do Not Delete')
+
+                        MONMSG     MSGID(CPF0000 SQL0000) EXEC(DO)
+                        CHGVAR     VAR(&MSGTXT) VALUE('Could not create dummy +
+                          file PCASCII in library' *BCAT &LIBNAM)
+                        CALLSUBR   SUBR(INST_ERROR)
+                        GOTO       CMDLBL(EXIT)
+                        ENDDO
+
+/*  RPG server program.                                                       */
+
+             CRTBNDRPG  PGM(&LIBNAM/RPTMOD) +
+                          SRCFILE(&LIBNAM/QRPGLESRC) DFTACTGRP(*NO) +
+                          OPTION(*NODEBUGIO) DBGVIEW(*SOURCE)
+
+                        MONMSG     MSGID(CPF0000 SQL0000) EXEC(DO)
+                        CHGVAR     VAR(&MSGTXT) VALUE('Could not create server +
+                          program RPTMOD in library' *BCAT &LIBNAM)
+                        CALLSUBR   SUBR(INST_ERROR)
+                        GOTO       CMDLBL(EXIT)
+                        ENDDO
+
+/*  If this point is reached, installation is complete.                       */
+
+             SNDPGMMSG  MSG('Report Mods Framework installed +
+                          successfully.') TOPGMQ(*PRV)
+
+/*  Restore original current library.                                         */
+
+ EXIT:       IF         COND(&CURLIB *EQ '*NONE') THEN(CHGCURLIB +
+                          CURLIB(*CRTDFT))
+
+             ELSE       CMD(CHGCURLIB CURLIB(&CURLIB))
+
+/******************************************************************************/
+
+/*  If installation problems, delete library and send a message.              */
+
+             SUBR       SUBR(INST_ERROR)
+
+             CHGCURLIB  CURLIB(*CRTDFT)
+
+             DLTLIB     LIB(&LIBNAM)
+
+             CHGVAR     VAR(&MSGTXT) VALUE(&MSGTXT *TCAT '.  +
+                          Installation rolled back.')
+
+             SNDPGMMSG  MSG(&MSGTXT) TOPGMQ(*PRV)
+
+             ENDSUBR
+
+/******************************************************************************/
+
+             ENDPGM
+
+/******************************************************************************/

@@ -1,0 +1,92 @@
+--------------------------------------------------------------------------------
+--
+--  REPORT MODS FRAMEWORK - RULES TABLE
+--
+--  Copyright (C) 2004, 2017  Christopher F. Burns, Sr.
+--  c/o GEMKO Information Group (http://www.gemko.com)
+--
+--  This program is free software: you can redistribute it and/or modify
+--  it under the terms of the GNU General Public License as published by
+--  the Free Software Foundation, either version 3 of the License, or
+--  (at your option) any later version.
+--
+--  This program is distributed in the hope that it will be useful,
+--  but WITHOUT ANY WARRANTY; without even the implied warranty of
+--  MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+--  GNU General Public License for more details.
+--
+--  You should have received a copy of the GNU General Public License
+--  along with this program.  If not, see <http://www.gnu.org/licenses/>.
+--
+--------------------------------------------------------------------------------
+
+CREATE TABLE RPTMOD (
+  RMSEQN INTEGER NOT NULL DEFAULT 0 ,
+  RMFILE CHAR(10) CCSID 37 NOT NULL DEFAULT '' ,
+  RMAPGM CHAR(10) CCSID 37 NOT NULL DEFAULT '' ,
+  RMSRCQ CHAR(10) CCSID 37 NOT NULL DEFAULT '' ,
+  RMUSRP CHAR(10) CCSID 37 NOT NULL DEFAULT '' ,
+  RMMPGM CHAR(10) CCSID 37 NOT NULL DEFAULT '' ,
+  RMMLIB CHAR(10) CCSID 37 NOT NULL DEFAULT '' ,
+  RMRECP CHAR(30) CCSID 37 NOT NULL DEFAULT '' ,
+  RMTRGQ CHAR(10) CCSID 37 NOT NULL DEFAULT '' ,
+  RMTYPE CHAR(1) CCSID 37 NOT NULL DEFAULT '' ,
+  RMCOPY NUMERIC(2, 0) NOT NULL DEFAULT 1 ,
+  RMPGLO NUMERIC(3, 0) NOT NULL DEFAULT 0 ,
+  RMPGWO NUMERIC(3, 0) NOT NULL DEFAULT 0 ,
+  RMLPIO NUMERIC(2, 0) NOT NULL DEFAULT 0 ,
+  RMCPIO NUMERIC(2, 0) NOT NULL DEFAULT 0 ,
+  RMOVFO NUMERIC(2, 0) NOT NULL DEFAULT 0 ,
+  RMPATH VARCHAR(100) CCSID 37 NOT NULL DEFAULT '' ,
+  RMENAB CHAR(1) CCSID 37 NOT NULL DEFAULT '' ,
+  RMDELT CHAR(1) CCSID 37 NOT NULL DEFAULT '' ,
+  RMDRAW CHAR(1) CCSID 37 NOT NULL DEFAULT '' ,
+  RMMAIL VARCHAR(50) CCSID 37 NOT NULL DEFAULT '' ,
+  RMFTPH CHAR(20) CCSID 37 NOT NULL DEFAULT ' ' ,
+  RMFTPS CHAR(10) CCSID 37 NOT NULL DEFAULT ' ' ,
+  RMOVNM CHAR(10) CCSID 37 NOT NULL DEFAULT '' ,
+  RMOVLB CHAR(10) CCSID 37 NOT NULL DEFAULT '' ,
+  RMUNIQ INTEGER GENERATED ALWAYS AS IDENTITY (
+  START WITH 1 INCREMENT BY 1
+  NO MINVALUE NO MAXVALUE
+  NO CYCLE NO ORDER
+  NO CACHE )
+  ,
+  CONSTRAINT Q_RPTMOD_RMSEQN_00001 PRIMARY KEY( RMSEQN , RMUNIQ ) )
+  VOLATILE
+  RCDFMT RPTMOD     ;
+
+LABEL ON TABLE RPTMOD
+  IS 'Report Mods Framework Rules' ;
+
+LABEL ON COLUMN RPTMOD
+( RMUNIQ IS 'Unique              ID' ) ;
+
+LABEL ON COLUMN RPTMOD
+( RMSEQN TEXT IS 'SEQUENCE NUMBER' ,
+  RMFILE TEXT IS 'SPOOLED FILE NAME' ,
+  RMAPGM TEXT IS 'APPLICATION PROGRAM' ,
+  RMSRCQ TEXT IS 'SOURCE OUTPUT QUEUE' ,
+  RMUSRP TEXT IS 'USER PROFILE' ,
+  RMMPGM TEXT IS 'MODIFICATION PROGRAM' ,
+  RMMLIB TEXT IS 'MOD PROGRAM LIBRARY' ,
+  RMRECP TEXT IS 'RECIPIENT NAME' ,
+  RMTRGQ TEXT IS 'TARGET OUTPUT QUEUE' ,
+  RMTYPE TEXT IS 'TRANSFORM TYPE' ,
+  RMCOPY TEXT IS 'COPIES' ,
+  RMPGLO TEXT IS 'PAGE LENGTH OVERRIDE' ,
+  RMPGWO TEXT IS 'PAGE WIDTH OVERRIDE' ,
+  RMLPIO TEXT IS 'LINES PER INCH OVERRIDE' ,
+  RMCPIO TEXT IS 'CHARACTERS PER INCH OVERRIDE' ,
+  RMOVFO TEXT IS 'OVERFLOW LINE OVERRIDE' ,
+  RMPATH TEXT IS 'IFS PATH' ,
+  RMENAB TEXT IS 'ENABLED (Y/N)' ,
+  RMDELT TEXT IS 'Dlete After Y/N' ,
+  RMDRAW TEXT IS 'Drawer Number Override' ,
+  RMMAIL TEXT IS 'E-Mail Address Override' ,
+  RMFTPH TEXT IS 'FTP Host Name' ,
+  RMFTPS TEXT IS 'FTP Script Name' ,
+  RMOVNM TEXT IS 'Overlay Name' ,
+  RMOVLB TEXT IS 'Overlay Library' ,
+  RMUNIQ TEXT IS 'Unique ID' ) ;
+
