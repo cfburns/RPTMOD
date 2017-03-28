@@ -170,6 +170,7 @@
                                                   or rmapgm = rsrecv.crtpgm)
              and (rmsrcq = '*ALL' or rmsrcq = ' ' or rmsrcq = rsrecv.outque)
              and (rmusrp = '*ALL' or rmusrp = ' ' or rmusrp = type01.jobusr)
+             and (rmftyp = '*ALL' or rmftyp = ' ' or rmftyp = rsrecv.frmtyp)
              and not %eof(rptmod);                                           // if matching rule
 
              clear RptModCom;                                                // clear comm area
