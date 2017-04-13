@@ -105,6 +105,7 @@
        dcl-ds RptModCom;                                                     // communication area
          FormType char(10);                                                  // form type
          PDFName  varchar(64);                                               // PDF file name
+         EmailAdr varchar(64);                                               // E-mail address
        end-ds;                                                               // communication area
 
        dcl-ds k_qatmsmtpa likerec(qtmsmpr:*key) inz;                         // key to qatmsmtpa
@@ -514,9 +515,14 @@
        // directory entry.  Command SNDSMTPEMM is used.
 
        dcl-proc EmailSpool;                                                  // email spooled file
+
        dcl-ds k_qatoctcpip likerec(qattr:*key) inz;                          // key to QATOCTCPIP
 
        BuildPDF();                                                           // command structure
+
+       if rmmpgm > *blanks and EmailAdr > *blanks;                           // if address from mod
+         rmmail = EmailAdr;                                                  // use that address
+       endif;                                                                // if address from mod
 
        if rmmail <= *blanks;                                                 // if no e-mail addr
 

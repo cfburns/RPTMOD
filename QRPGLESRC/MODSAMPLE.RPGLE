@@ -55,7 +55,8 @@
 
        dcl-ds RptModCom;                                                     // communication area
          FormType char(10);                                                  // form type
-         PDFName varchar(64);                                                // PDF document name
+         PDFName  varchar(64);                                               // PDF document name
+         EmailAdr varchar(64);                                               // E-mail address
        end-ds;                                                               // communication area
 
        dcl-ds Pages dim(1500) qualified based(PagPtr);                       // page grid

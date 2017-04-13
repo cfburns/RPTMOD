@@ -1,0 +1,137 @@
+/******************************************************************************/
+/*                                                                            */
+/*  REPORT MODS FRAMEWORK - CREATE OVERLAY FROM STREAM FILE                   */
+/*                                                                            */
+/*  Copyright (C) 2004, 2017  Christopher F. Burns, Sr.                       */
+/*  c/o GEMKO Information Group (http://www.gemko.com)                        */
+/*                                                                            */
+/*  This program is free software: you can redistribute it and/or modify      */
+/*  it under the terms of the GNU General Public License as published by      */
+/*  the Free Software Foundation, either version 3 of the License, or         */
+/*  (at your option) any later version.                                       */
+/*                                                                            */
+/*  This program is distributed in the hope that it will be useful,           */
+/*  but WITHOUT ANY WARRANTY; without even the implied warranty of            */
+/*  MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the             */
+/*  GNU General Public License for more details.                              */
+/*                                                                            */
+/*  You should have received a copy of the GNU General Public License         */
+/*  along with this program.  If not, see <http://www.gnu.org/licenses/>.     */
+/*                                                                            */
+/******************************************************************************/
+
+             PGM        PARM(&OVLQUAL &SRCQUAL &IFSPATH &REPLACE)
+
+             DCL        VAR(&OVLQUAL) TYPE(*CHAR) LEN(20)
+             DCL        VAR(&SRCQUAL) TYPE(*CHAR) LEN(20)
+             DCL        VAR(&IFSPATH) TYPE(*CHAR) LEN(256)
+             DCL        VAR(&REPLACE) TYPE(*CHAR) LEN(4)
+
+             DCL        VAR(&OVLNAME) TYPE(*CHAR) STG(*DEFINED) LEN(10) +
+                          DEFVAR(&OVLQUAL)
+
+             DCL        VAR(&OVLLIBR) TYPE(*CHAR) STG(*DEFINED) LEN(10) +
+                          DEFVAR(&OVLQUAL 11)
+
+             DCL        VAR(&SRCNAME) TYPE(*CHAR) STG(*DEFINED) LEN(10) +
+                          DEFVAR(&SRCQUAL)
+
+             DCL        VAR(&SRCLIBR) TYPE(*CHAR) STG(*DEFINED) LEN(10) +
+                          DEFVAR(&SRCQUAL 11)
+
+             DCL        VAR(&IFSFROM) TYPE(*CHAR) LEN(256)
+             DCL        VAR(&SRCPFTO) TYPE(*CHAR) LEN(256)
+             DCL        VAR(&ERRTEXT) TYPE(*CHAR) LEN(80)
+             DCL        VAR(&MBROPTN) TYPE(*CHAR) LEN(10)
+             DCL        VAR(&SQUOTE)  TYPE(*CHAR) LEN(1)  VALUE(X'7D')
+
+/*  VALIDATIONS                                                               */
+
+             CHKOBJ     OBJ(&OVLLIBR) OBJTYPE(*LIB)
+             MONMSG     MSGID(CPF0000) EXEC(DO)
+                CHGVAR     VAR(&ERRTEXT) VALUE('Overlay library' *BCAT +
+                             &OVLLIBR *BCAT 'not found.')
+                GOTO       CMDLBL(ERRORS)
+             ENDDO
+
+             CHKOBJ     OBJ(&SRCLIBR) OBJTYPE(*LIB)
+             MONMSG     MSGID(CPF0000) EXEC(DO)
+                CHGVAR     VAR(&ERRTEXT) VALUE('Source file library' *BCAT +
+                             &SRCLIBR *BCAT 'not found.')
+                GOTO       CMDLBL(ERRORS)
+             ENDDO
+
+             CHKOBJ     OBJ(&SRCLIBR/&SRCNAME) OBJTYPE(*FILE)
+             MONMSG     MSGID(CPF0000) EXEC(DO)
+                CHGVAR     VAR(&ERRTEXT) VALUE('Source file' *BCAT +
+                             &SRCNAME *BCAT 'not found in library' *BCAT +
+                             &SRCLIBR *TCAT '.')
+                GOTO       CMDLBL(ERRORS)
+             ENDDO
+
+             IF         COND(&REPLACE *EQ *NO) THEN(DO)
+
+                CHKOBJ     OBJ(&OVLLIBR/&OVLNAME) OBJTYPE(*OVL)
+                MONMSG     MSGID(CPF0000) EXEC(GOTO CMDLBL(CHKMBR))
+
+                CHGVAR     VAR(&ERRTEXT) VALUE('Overlay' *BCAT &OVLNAME +
+                             *BCAT 'already exists in library' *BCAT +
+                             &OVLLIBR *TCAT '.')
+                GOTO       CMDLBL(ERRORS)
+
+ CHKMBR:        CHKOBJ     OBJ(&SRCLIBR/&SRCNAME) OBJTYPE(*FILE) +
+                          MBR(&OVLNAME)
+                MONMSG     MSGID(CPF0000) EXEC(GOTO CMDLBL(CVTOVL))
+
+                CHGVAR     VAR(&ERRTEXT) VALUE('Overlay source' *BCAT +
+                             &OVLNAME *BCAT 'already exists in source +
+                             file' *BCAT &SRCNAME *BCAT 'in library' *BCAT +
+                             &SRCLIBR *TCAT '.')
+                GOTO       CMDLBL(ERRORS)
+
+
+             ENDDO
+
+/*  CONVERT PRN FILE TO OVERLAY SOURCE AND CREATE OVERLAY                     */
+
+ CVTOVL:     CHGVAR     VAR(&IFSFROM) VALUE(&SQUOTE *TCAT &IFSPATH *TCAT +
+                          &SQUOTE)
+
+             CHGVAR     VAR(&SRCPFTO) VALUE(&SQUOTE *TCAT '/QSYS.LIB/' +
+                          *TCAT &SRCLIBR *TCAT '.LIB/' *TCAT &SRCNAME +
+                          *TCAT '.FILE/' *TCAT &OVLNAME *TCAT '.MBR' *TCAT +
+                          &SQUOTE)
+
+             IF         COND(&REPLACE *EQ '*YES') THEN(CHGVAR +
+                          VAR(&MBROPTN) VALUE('*REPLACE'))
+
+             ELSE       CMD(CHGVAR VAR(&MBROPTN) VALUE('*NONE'))
+
+             CPYFRMSTMF FROMSTMF(&IFSFROM) TOMBR(&SRCPFTO) +
+                          MBROPT(&MBROPTN) CVTDTA(*NONE) +
+                          ENDLINFMT(*FIXED) TABEXPN(*NO)
+
+             MONMSG     MSGID(CPF0000) EXEC(DO)
+                CHGVAR     VAR(&ERRTEXT) VALUE('Conversion to overlay +
+                             source failed')
+                GOTO       CMDLBL(ERRORS)
+             ENDDO
+
+             CRTOVL     OVL(&OVLLIBR/&OVLNAME) FILE(&SRCLIBR/&SRCNAME) +
+                          MBR(&OVLNAME) DATATYPE(*AFPDS) REPLACE(&REPLACE)
+
+             MONMSG     MSGID(CPF0000) EXEC(DO)
+                CHGVAR     VAR(&ERRTEXT) VALUE('Creation of overlay' *BCAT +
+                             &OVLNAME *BCAT 'in library' *BCAT &OVLLIBR +
+                             *BCAT 'failed.')
+                GOTO       CMDLBL(ERRORS)
+             ENDDO
+
+             CHGVAR     VAR(&ERRTEXT) VALUE('Overlay' *BCAT &OVLNAME +
+                          *BCAT 'created in library' *BCAT &OVLLIBR +
+                          *TCAT '.')
+
+ ERRORS:     SNDPGMMSG  MSG(&ERRTEXT) TOPGMQ(*PRV)
+
+ EXIT:       ENDPGM
+

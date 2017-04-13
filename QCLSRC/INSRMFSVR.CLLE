@@ -184,6 +184,19 @@
                         GOTO       CMDLBL(EXIT)
                         ENDDO
 
+/*  Data physical file for coverted overlay source.                           */
+
+             CRTPF      FILE(&LIBNAM/QOVLSRC) RCDLEN(32766) +
+                          MAXMBRS(*NOMAX) SIZE(*NOMAX)
+
+                        MONMSG     MSGID(CPF0000 SQL0000) EXEC(DO)
+                        CHGVAR     VAR(&MSGTXT) VALUE('Could not create +
+                          overlay source file QOVLSRC in library' +
+                          *BCAT &LIBNAM)
+                        CALLSUBR   SUBR(INST_ERROR)
+                        GOTO       CMDLBL(EXIT)
+                        ENDDO
+
 /*  RPG server program.                                                       */
 
              CRTBNDRPG  PGM(&LIBNAM/RPTMOD) +
@@ -193,6 +206,32 @@
                         MONMSG     MSGID(CPF0000 SQL0000) EXEC(DO)
                         CHGVAR     VAR(&MSGTXT) VALUE('Could not create server +
                           program RPTMOD in library' *BCAT &LIBNAM)
+                        CALLSUBR   SUBR(INST_ERROR)
+                        GOTO       CMDLBL(EXIT)
+                        ENDDO
+
+/*  Overlay creation utility.                                                 */
+
+             CRTBNDCL   PGM(&LIBNAM/CRTOVLSTMF) +
+                          SRCFILE(&LIBNAM/QCLSRC) DFTACTGRP(*NO) +
+                          DBGVIEW(*SOURCE)
+
+                        MONMSG     MSGID(CPF0000 SQL0000) EXEC(DO)
+                        CHGVAR     VAR(&MSGTXT) VALUE('Could not create +
+                          utility program CRTOVLSTMF in library' +
+                          *BCAT &LIBNAM)
+                        CALLSUBR   SUBR(INST_ERROR)
+                        GOTO       CMDLBL(EXIT)
+                        ENDDO
+
+             CRTCMD     CMD(&LIBNAM/CRTOVLSTMF) +
+                          PGM(&LIBNAM/CRTOVLSTMF) +
+                          SRCFILE(&LIBNAM/QCMDSRC)
+
+                        MONMSG     MSGID(CPF0000 SQL0000) EXEC(DO)
+                        CHGVAR     VAR(&MSGTXT) VALUE('Could not create +
+                          command CRTOVLSTMF in library' *BCAT +
+                          &LIBNAM)
                         CALLSUBR   SUBR(INST_ERROR)
                         GOTO       CMDLBL(EXIT)
                         ENDDO
