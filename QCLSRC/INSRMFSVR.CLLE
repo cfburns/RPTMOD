@@ -187,7 +187,7 @@
 /*  Data physical file for coverted overlay source.                           */
 
              CRTPF      FILE(&LIBNAM/QOVLSRC) RCDLEN(32766) +
-                          MAXMBRS(*NOMAX) SIZE(*NOMAX)
+                          MAXMBRS(*NOMAX) SIZE(*NOMAX) LVLCHK(*NO)
 
                         MONMSG     MSGID(CPF0000 SQL0000) EXEC(DO)
                         CHGVAR     VAR(&MSGTXT) VALUE('Could not create +
