@@ -78,6 +78,7 @@
          linper int(10)  pos(173);                                           // lines per inch
          chrper int(10)  pos(177);                                           // chars per inch
          outque char(10) pos(183);                                           // output queue name
+         outlib char(10) pos(193);                                           // output queue library
          crtdat zoned(7) pos(203);                                           // creation date
          crttim zoned(6) pos(210);                                           // creation time
          crtpgm char(10) pos(236);                                           // creation program
@@ -170,6 +171,7 @@
              and (rmapgm = '*ALL' or rmapgm = ' ' or rmapgm = rsrecv.usrdta
                                                   or rmapgm = rsrecv.crtpgm)
              and (rmsrcq = '*ALL' or rmsrcq = ' ' or rmsrcq = rsrecv.outque)
+             and (rmsrcl = '*ALL' or rmsrcl = ' ' or rmsrcl = rsrecv.outlib)
              and (rmusrp = '*ALL' or rmusrp = ' ' or rmusrp = type01.jobusr)
              and (rmftyp = '*ALL' or rmftyp = ' ' or rmftyp = rsrecv.frmtyp)
              and not %eof(rptmod);                                           // if matching rule
@@ -308,12 +310,18 @@
 
        dcl-proc CreateSpool;                                                 // create new splf
 
+       dcl-s TargQual char(21);                                              // target que qualified
+
        if rmcopy < 1;                                                        // if no copies
          rmcopy = 1;                                                         // set to 1
        endif;                                                                // if no copies
 
        if rmtrgq = *blanks;                                                  // if no target outq
-         rmtrgq = '*JOB';                                                    // use job outq
+         TargQual = '*JOB';                                                  // use server job outq
+       elseif rmtrgl = *blanks;                                              // or no target library
+         TargQual = '*LIBL/' + rmtrgq;                                       // assume *LIBL
+       else;                                                                 // outq & libr provided
+         TargQual = %trim(rmtrgl) + '/' + rmtrgq;                            // qualified outq
        endif;                                                                // if no target outq
 
        if rmpglo > 0;                                                        // if page len override
@@ -343,7 +351,7 @@
                 'LPI(' + %char(%int(rsrecv.linper / 10))    + ') ' +
                 'CPI(' + %char(%int(rsrecv.chrper / 10))    + ') ' +
                 'COPIES(' + %char(rmcopy)                   + ') ' +
-                'OUTQ(' + %trim(rmtrgq)                     + ') ' +
+                'OUTQ(' + %trim(TargQual)                   + ') ' +
                 'PRTTXT(' + squote + %trim(rmrecp) + squote + ') ' +
                 'USRDTA(' + squote + %trim(rsrecv.usrdta)
                           + squote                          + ') ' +

@@ -159,6 +159,10 @@
                         GOTO       CMDLBL(EXIT)
                         ENDDO
 
+             GRTOBJAUT  OBJ(&LIBNAM/SPLFGRID) OBJTYPE(*FILE) +
+                          USER(QSYSOPR) AUT(*ALL)
+                        MONMSG     MSGID(CPF0000)
+
 /*  Source physical file for FTP scripts.                                     */
 
              CRTSRCPF   FILE(&LIBNAM/QFTPSRC) MBR(OUTPUT) +
